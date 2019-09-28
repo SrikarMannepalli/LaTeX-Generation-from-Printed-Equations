@@ -1,1 +1,1 @@
-# LaTex-Generation-from-Printed-Equations
+# LaTeX-Generation-from-Printed-Equations
