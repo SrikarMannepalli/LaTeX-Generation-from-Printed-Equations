@@ -10,6 +10,8 @@ from matplotlib import pyplot as plt
 
 
 # smart content aware noise removal could be one idea to improve.
+# working fine all images.
+# gaussianblur inbuilt works only on even window sizes
 
 # In[2]:
 
@@ -47,7 +49,7 @@ def binarization_photos(img):
         high_res = 1
     
     if high_res==1:
-        img = cv2.GaussianBlur(img,(10,10),3)
+        img = cv2.GaussianBlur(img,(9,9),3) # fails for even
     
     window_size = int(min(img.shape[0],img.shape[1])/60)
     if window_size%2==0:
