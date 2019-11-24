@@ -18,6 +18,7 @@ Following python3 packages have been used in this project -
 * scikit-image
 * matplotlib
 * numpy
+
 The project has been done using Python3.7. Kindly use Python 3.6+ only.
 Command to install these packages has been provided in the below section. 
 
