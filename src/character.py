@@ -11,7 +11,7 @@ import math
 from scipy import ndimage
 from matplotlib.path import Path
 
-
+#create identifier profiles for each character
 def create_identifier(img,centroid):
     #     print("maxi:",np.max(img))
 #     img = ~img
@@ -52,6 +52,8 @@ def create_identifier(img,centroid):
     id_profile[2*k+5] = hu7
     id_profile[1:2*k] = get_circular_topology(img,centroid,k)
     return id_profile
+
+#calculate central moments
 def central_moments(img, p, q):
     img[img==255] = 1
     M00 = 0 
@@ -72,17 +74,19 @@ def central_moments(img, p, q):
             cen_mmt += ((i-x_bar)**p)*((j-y_bar)**q)*img[i,j]
             
     return cen_mmt
+
+# shift origin for centroids
 def create_new_centroids(centroids,bboxs,ims):
     centroids_new = []
     for i in range(0, len(ims)):
-#         plt.imshow(ims[i],cmap='gray')
         centrs = [centroids[i][0],centroids[i][1]]
         centrs[0]-=bboxs[i][0]
         centrs[1]-=bboxs[i][1]
-        #print(centrs)
         centroids_new.append(centrs)
-#         plt.show()
     return centroids_new
+
+
+#get angular distance
 def ang_dist(xx,yy):
     lis = [] 
     for x,y in zip(xx,yy):
@@ -92,6 +96,7 @@ def ang_dist(xx,yy):
         lis.append(delta)
     return max(lis)
 
+# get circular mask
 def circular_mask(img,centroid,radius):
     lastx,lasty = -10,-10
     last = 0
@@ -122,6 +127,7 @@ def circular_mask(img,centroid,radius):
     return count,angular_distance/(2*np.pi)
 
 
+# using connected components for determining cuts
 def get_new_cuts(img, centroid, radius):
     lastx,lasty = -10,-10
     last = 0
@@ -142,12 +148,11 @@ def get_new_cuts(img, centroid, radius):
 #     print(len(reg))
     cv2.circle(img,(int(centroid[1]),int(centroid[0])),int(radius),1,thickness=1)
     count = len(reg)
-    # plt.imshow(img,cmap="gray")
-    # plt.show()
-    # print(count)
+
     return count,img_on_circle
 
 
+# get all_ids for circles 
 def get_circular_topology(img,centroid,k):
     circular_topology = np.zeros(2*k)
     #finding maximum distance
@@ -159,11 +164,9 @@ def get_circular_topology(img,centroid,k):
         
     return circular_topology[:-1]
 
-
-
+#find nearest neighbour
 def find_nn(img,centroid):
     #     fe_vector = create_identifier(cv2.GaussianBlur(img.astype(np.uint8),(5,5),3),centroid)
-    
     fe_vector = create_identifier(img,centroid)
     mind = -1
     mival = 1000 
@@ -177,8 +180,8 @@ def find_nn(img,centroid):
     #print(id_profs_list[mind])
     #print(fe_vector)
 
-
-def find_nn_srikar(img,centroid,id_profs_list):
+# find nearest neighbour weighted identifier profile 
+def find__nn_new(img,centroid,id_profs_list):
 #     fe_vector = create_identifier(cv2.GaussianBlur(img.astype(np.uint8),(5,5),3),centroid)
     fe_vector = create_identifier(img,centroid)
     mind = -1

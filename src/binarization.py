@@ -10,8 +10,8 @@ from skimage.morphology import remove_small_objects, remove_small_holes
 from skimage.transform import hough_line, hough_line_peaks, probabilistic_hough_line, rotate
 import math
 from scipy import ndimage
-from matplotlib.path import Path
 
+# find if the image is a screen shot
 def find_scan_screenshot(img):
     # return 0 for scan/screenshot and 1 for photograph
     total_pixels = img.shape[0]*img.shape[1]
@@ -22,11 +22,13 @@ def find_scan_screenshot(img):
     else:
         return 1
 
+# Threshold screenshots and binarize 
 def binarization_scans(img):
-    # using inbuilt otsu's method..Implement later
+    # using inbuilt otsu's method.
     _,im = cv2.threshold(img,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
     return im
-#handle very small images later 
+
+#threshold photographs and binarize
 def binarization_photos(img):
     high_res = 0
     if img.size>2000*1000:
@@ -42,6 +44,7 @@ def binarization_photos(img):
     thresh_img = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINARY,window_size,10)
     return thresh_img
 
+#use morphological opening and closing to remove noise and small holes 
 def morph_proc(img):
     img = 255 - img
     img[img==255] = 1
@@ -56,15 +59,15 @@ def morph_proc(img):
     fin_img = remove_small_objects(arr, min_size=hole_size)
     fin_img = fin_img.astype(np.uint8)
     fin_img[fin_img==1] = 255
-    #print(np.max(fin_img))
     return 255-fin_img
 
+#run binarization on input based on type
 def binarize_input(img):
     img_type = find_scan_screenshot(img)
     if img_type==0:
-        print("Scan/Screenshot")
+        print("Image type: Scan/Screenshot")
     else:
-        print("Photograph")
+        print("Image type: Photograph")
     if img_type==0:
         new_img = binarization_scans(img)
     else:

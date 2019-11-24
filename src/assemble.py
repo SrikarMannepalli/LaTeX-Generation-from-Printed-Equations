@@ -17,18 +17,17 @@ def get_control_chars():
 
 def get_det_char(detected,index, next_det,next_seg_dist,control,limit_control,space):
     # Recognize control characters
-    #print("srik here",detected,next_seg_dist,space)
+    #print(detected,next_seg_dist,space)
     if (detected in control) or (detected in limit_control):
-        #print("viv")
         new_detected = '\\'+detected+' '
         detected = new_detected
 
     # Insert space if needed between letters
-#     print("srikar viv",check_letter(detected),check_letter(next_det),next_det)
+#     print(check_letter(detected),check_letter(next_det),next_det)
     if (next_seg_dist is not None) and (check_letter(detected)) and (check_letter(next_det)):
         if next_seg_dist >= space:
             detected = detected+'\,'
-    #print("srikar",detected)
+
     return detected
 
 def check_letter(chara):
@@ -69,8 +68,7 @@ def assemble_eqn(bboxs,centroids,detected_chars,flag_recur=0):
 
     #print(num_chars)
     while i<num_chars:
-#         i+=1
-        #print("hhii",i,num_chars)
+
         #print(i,num_chars,new_detected_chars[i])
         detected = new_detected_chars[i]
     
@@ -124,14 +122,10 @@ def assemble_eqn(bboxs,centroids,detected_chars,flag_recur=0):
              # Check for super and sub scripts by comparing lower left corner with stored centroid height, unless it was fraction
             if i > 0 and ~prev_fraction:
                 
-                #print(0,detected)
                 lower_left_corn = boxes[1,i]+boxes[3,i]
                 upper_left_corn = boxes[1,i]
-                #print("i was here", new_detected_chars, lower_left_corn,prev_centr_yco)
                 if lower_left_corn <= np.ceil(prev_centr_yco)+3:
-                    #print(1,detected)
-                    #print("i was here", new_detected_chars)
-                    
+
                     if detected!='-' or lower_left_corn < (prev_centr_yco-5*boxes[3,i]):
                         # control sequence
                         super_exists = True
@@ -152,7 +146,7 @@ def assemble_eqn(bboxs,centroids,detected_chars,flag_recur=0):
     
                 elif upper_left_corn >= np.floor(prev_centr_yco):
                     #print(upper_left_corn,prev_centr_yco)
-                    #print(2,detected)
+                 
                     if super_exists:
                         super_exists = False
                         # End of exponent
@@ -173,7 +167,6 @@ def assemble_eqn(bboxs,centroids,detected_chars,flag_recur=0):
                         
                         detected = get_det_char(detected,i,next_send,next_seg_dist,control, limit_control,space)
                     else:
-                        #print(3,detected)
                         # Subscript
                         sub_exists = True
                         new_eq_string = eq_string.strip() +'_{'
@@ -191,7 +184,6 @@ def assemble_eqn(bboxs,centroids,detected_chars,flag_recur=0):
                         # Store centroid to check for exponents
                         prev_centr_yco = new_centroids[0,i]
                 else:
-                    #print(4,detected)
                     prev_fraction = False
                     
                     # Store centroid to check for exponents
@@ -206,7 +198,6 @@ def assemble_eqn(bboxs,centroids,detected_chars,flag_recur=0):
                     
                     detected = get_det_char(detected,i,next_send,next_seg_dist,control, limit_control,space)
             else:
-                #print(5,detected)
                 prev_fraction = False;
                 
                 # Store centroid to check for exponents
@@ -243,7 +234,7 @@ def assemble_eqn(bboxs,centroids,detected_chars,flag_recur=0):
                 prev_centr_yco = new_centroids[0,i]
             else:
                 overlap_char = new_detected_chars[i+1]
-                #print("uuu",overlap_char,detected)
+                #print(overlap_char,detected)
                 # Manually check for = case
                 # If just a two '-', it is an equals
                 if detected=='-' and overlap_char=='-':
@@ -252,7 +243,6 @@ def assemble_eqn(bboxs,centroids,detected_chars,flag_recur=0):
                 
                 i = i+1 # Skip next char
         else:
-            #print("i came here")
             # Get the overlapped boxes, look for bars and limit controls
             overlap_idx[i] = True
             overlap_indi = []
@@ -297,7 +287,7 @@ def assemble_eqn(bboxs,centroids,detected_chars,flag_recur=0):
                 frac_bar_height = overlap_boxes[3,bar_idx]
                 
                
-                #print(new_detected_chars[i],"poiuytreww")
+                #print(new_detected_chars[i])
                 if (prev_centr_yco is not None) and (frac_y_coord < prev_centr_yco - 7*frac_bar_height):
                     super_exists = True
                     #print("I got power here 3")
@@ -321,7 +311,6 @@ def assemble_eqn(bboxs,centroids,detected_chars,flag_recur=0):
                         denom_det_chars.append(w_char) 
 
                 # Get eq_string of subequation string
-                #print(overlap_centroids[:,num_idx], overlap_boxes[:,num_idx], num_det_chars, "yooyooyooyooy")
                 numer_str = assemble_eqn(overlap_boxes[:,num_idx],overlap_centroids[:,num_idx],num_det_chars)
                 denom_str = assemble_eqn(overlap_boxes[:,denom_idx],overlap_centroids[:,denom_idx],denom_det_chars)
                 detected = '\\frac{'+numer_str+'}{'+denom_str+'}'
@@ -387,8 +376,6 @@ def get_boxes(bboxes):
         boxes[1,i] = bboxes[i][0]
         boxes[2,i] = bboxes[i][3] - bboxes[i][1]
         boxes[3,i] = bboxes[i][2] - bboxes[i][0]
-    #print("hi there")
-    #print(boxes)
     return boxes
 
 def get_centroids(centroids):

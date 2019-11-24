@@ -12,6 +12,7 @@ from scipy import ndimage
 from matplotlib.path import Path
 
 
+#skew correction for scanned
 def skew_correction_scanned(img):
     neg_img = 255 - img
     
@@ -22,7 +23,7 @@ def skew_correction_scanned(img):
     h, theta, d = hough_line_peaks(h, theta, d, min_distance=0, min_angle=0, num_peaks=4)
     theta = [int(np.round(math.degrees(i))) for i in theta]    
     #print(theta)
-
+    # get dominant orientati0on
     dom_orient = max(theta)
     deskewing_angle = dom_orient - 90
 
@@ -30,14 +31,18 @@ def skew_correction_scanned(img):
         deskewing_angle = deskewing_angle - (abs(deskewing_angle)/deskewing_angle) * 90
 
     #print(deskewing_angle)
-#     deskew_img = skimage.transform.rotate(neg_img, deskewing_angle, resize=True, cval=1, mode ='constant')
+
+    #rotate image by deskewing angle
     deskew_img = skimage.transform.rotate(neg_img, deskewing_angle, mode='constant', cval=0, preserve_range=True, clip=True)
     
     deskew_img = 255-deskew_img
+    # do morphological opening with square 3X3 structuring element
     str_ele = skimage.morphology.selem.square(3)
     deskew_img = skimage.morphology.binary_opening(deskew_img,selem=str_ele)
     return deskew_img.astype(np.uint8)
 
+
+#skew correction for photos
 def skew_correction(img):
     neg_img = 255 - img
     
@@ -56,10 +61,12 @@ def skew_correction(img):
         deskewing_angle = deskewing_angle - (abs(deskewing_angle)/deskewing_angle) * 90
 
     #print(deskewing_angle)
-#     deskew_img = skimage.transform.rotate(neg_img, deskewing_angle, resize=True, cval=1, mode ='constant')
+    #rotate image by deskewing angle
+
     deskew_img = skimage.transform.rotate(neg_img, deskewing_angle, mode='constant', cval=0, preserve_range=True, clip=True)
     
     deskew_img = 255-deskew_img
+    # close image by using square 3x3 structuring element and then dilate with 5x5 structuring element 
     str_ele = skimage.morphology.selem.square(3)
     str_ele1 = skimage.morphology.selem.square(5)
     deskew_img = skimage.morphology.binary_closing(deskew_img,selem=str_ele)
