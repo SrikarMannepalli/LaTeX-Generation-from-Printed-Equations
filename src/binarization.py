@@ -1,48 +1,32 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
 
 import cv2
+import os
+import copy
 import numpy as np
 from matplotlib import pyplot as plt
-
-
-# smart content aware noise removal could be one idea to improve.
-# working fine all images.
-# gaussianblur inbuilt works only on even window sizes
-
-# In[2]:
-
-
-img = cv2.imread('../input/eq1_hr.jpg',0)
-plt.imshow(img,cmap='gray')
-plt.show()
-
-
-# In[3]:
-
+import skimage
+from skimage.feature import canny
+from skimage.morphology import remove_small_objects, remove_small_holes
+from skimage.transform import hough_line, hough_line_peaks, probabilistic_hough_line, rotate
+import math
+from scipy import ndimage
+from matplotlib.path import Path
 
 def find_scan_screenshot(img):
     # return 0 for scan/screenshot and 1 for photograph
     total_pixels = img.shape[0]*img.shape[1]
     hist = cv2.calcHist([img],[0],None,[256],[0,256])
-    prop = np.sum(hist[15:241])/total_pixels
-    if prop<0.1:
+    prop = np.sum(hist[15:241])
+    if prop<0.1*total_pixels:
         return 0
     else:
         return 1
 
-
-# In[4]:
-
-
 def binarization_scans(img):
     # using inbuilt otsu's method..Implement later
-    ret,_ = cv2.threshold(img,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-    return ret
-
+    _,im = cv2.threshold(img,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+    return im
+#handle very small images later 
 def binarization_photos(img):
     high_res = 0
     if img.size>2000*1000:
@@ -53,25 +37,10 @@ def binarization_photos(img):
     
     window_size = int(min(img.shape[0],img.shape[1])/60)
     if window_size%2==0:
-        window_size+=1 #cv2.adaptiveThreshold accepts only odd window sizes 
-
-    thresh_img = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINARY,window_size,10)
+        window_size+=1 #cv2.adaptiveThreshold accepts only odd window sizes
     
+    thresh_img = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINARY,window_size,10)
     return thresh_img
-
-
-# In[5]:
-
-
-img_type = find_scan_screenshot(img)
-if img_type==0:
-    print("Scan/Screenshot")
-else:
-    print("Photograph")
-
-
-# In[6]:
-
 
 def morph_proc(img):
     img = 255 - img
@@ -80,23 +49,25 @@ def morph_proc(img):
     kernel1 = np.ones((5,5))
     opening = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel) 
     closed = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel) 
-    filled = cv2.morphologyEx(closed, cv2.MORPH_DILATE, kernel1) 
-    filled[filled==1] = 255
-    return 255-filled
+#     filled = cv2.morphologyEx(closed, cv2.MORPH_DILATE, kernel1) 
+    fin_img = cv2.morphologyEx(closed, cv2.MORPH_DILATE, kernel1) 
+    hole_size = int(0.0001 * img.shape[0] * img.shape[1])
+    arr = fin_img>0
+    fin_img = remove_small_objects(arr, min_size=hole_size)
+    fin_img = fin_img.astype(np.uint8)
+    fin_img[fin_img==1] = 255
+    #print(np.max(fin_img))
+    return 255-fin_img
 
-
-# In[7]:
-
-
-if img_type==0:
-    new_img = binarization_scan(img)
-else:
-    new_img = binarization_photos(img)
-    new_img = morph_proc(new_img)
-
-
-# In[8]:
-
-
-plt.imshow(new_img,cmap='gray')
-
+def binarize_input(img):
+    img_type = find_scan_screenshot(img)
+    if img_type==0:
+        print("Scan/Screenshot")
+    else:
+        print("Photograph")
+    if img_type==0:
+        new_img = binarization_scans(img)
+    else:
+        new_img = binarization_photos(img)
+        new_img = morph_proc(new_img)
+    return new_img
