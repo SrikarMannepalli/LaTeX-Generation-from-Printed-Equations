@@ -26,6 +26,7 @@ Command to install these packages has been provided in the below section.
 
 Clone this repository - [https://github.com/SrikarMannepalli/LaTeX-Generation-from-Printed-Equations.git](https://github.com/SrikarMannepalli/LaTeX-Generation-from-Printed-Equations.git)
 >git clone https://github.com/SrikarMannepalli/LaTeX-Generation-from-Printed-Equations.git
+
 >cd LaTeX-Generation-from-Printed-Equations && cd src
 
 Download dataset from the following Google Drive link - 
